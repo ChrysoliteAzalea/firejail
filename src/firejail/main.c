@@ -1240,7 +1240,8 @@ int main(int argc, char **argv, char **envp) {
 	if (check_arg(argc, argv, "--appimage", 1))
 		arg_appimage = 1;
 
-	// check for force-nonewprivs in /etc/firejail/firejail.config file
+	// load configuration file /etc/firejail/firejail.config
+	// and check for force-nonewprivs
 	if (checkcfg(CFG_FORCE_NONEWPRIVS))
 		arg_nonewprivs = 1;
 
@@ -1403,6 +1404,20 @@ int main(int argc, char **argv, char **envp) {
 		else if (strcmp(argv[i], "--memory-deny-write-execute") == 0) {
 			if (checkcfg(CFG_SECCOMP))
 				arg_memory_deny_write_execute = 1;
+			else
+				exit_err_feature("seccomp");
+		}
+		else if (strcmp(argv[i], "--restrict-namespaces") == 0) {
+			if (checkcfg(CFG_SECCOMP))
+				profile_list_augment(&cfg.restrict_namespaces, "cgroup,ipc,net,mnt,pid,time,user,uts");
+			else
+				exit_err_feature("seccomp");
+		}
+		else if (strncmp(argv[i], "--restrict-namespaces=", 22) == 0) {
+			if (checkcfg(CFG_SECCOMP)) {
+				const char *add = argv[i] + 22;
+				profile_list_augment(&cfg.restrict_namespaces, add);
+			}
 			else
 				exit_err_feature("seccomp");
 		}
